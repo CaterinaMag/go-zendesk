@@ -14,6 +14,7 @@ type SearchOptions struct {
 	Query     string `url:"query"`
 	SortBy    string `url:"sort_by,omitempty"`
 	SortOrder string `url:"sort_order,omitempty"`
+	Include   string `url:"include,omitempty"`
 }
 
 // CountOptions are the options that can be provided to the search results count API

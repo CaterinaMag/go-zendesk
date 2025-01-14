@@ -6,6 +6,15 @@ import (
 	"time"
 )
 
+// RequestsWithUsers is struct for requests and users payload (side loading)
+//
+// ref: https://developer.zendesk.com/api-reference/ticketing/ticket-management/search/#available-parameters
+type RequestsWithUsers struct {
+	Requests []Requests `json:"requests"`
+	Users    []User     `json:"users,omitempty"`
+	Page
+}
+
 // Requests is struct for requests payload
 type Requests struct {
 	URL              string          `json:"url,omitempty"`
@@ -63,30 +72,27 @@ type SearchRequestsAPI interface {
 // Search requests allows end users to query zendesk requests search api
 //
 // ref: https://developer.zendesk.com/api-reference/ticketing/tickets/ticket-requests/
-func (z *Client) SearchRequests(ctx context.Context, opts *RequestsOptions) ([]Requests, Page, error) {
-	var data struct {
-		Requests []Requests `json:"requests"`
-		Page
-	}
+func (z *Client) SearchRequests(ctx context.Context, opts *RequestsOptions) (RequestsWithUsers, Page, error) {
+	var data = RequestsWithUsers{}
 
 	if opts == nil {
-		return []Requests{}, Page{}, &OptionsError{opts}
+		return RequestsWithUsers{}, Page{}, &OptionsError{opts}
 	}
 
 	u, err := addOptions("/requests/search.json", opts)
 	if err != nil {
-		return []Requests{}, Page{}, &OptionsError{opts}
+		return RequestsWithUsers{}, Page{}, &OptionsError{opts}
 	}
 
 	body, err := z.get(ctx, u)
 	if err != nil {
-		return []Requests{}, Page{}, &OptionsError{opts}
+		return RequestsWithUsers{}, Page{}, &OptionsError{opts}
 	}
 
 	err = json.Unmarshal(body, &data)
 	if err != nil {
-		return []Requests{}, Page{}, &OptionsError{opts}
+		return RequestsWithUsers{}, Page{}, &OptionsError{opts}
 	}
 
-	return data.Requests, data.Page, nil
+	return data, data.Page, nil
 }
